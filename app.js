@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
@@ -11,6 +12,12 @@ const tourRouter = require('./routes/tourRoutes')
 const reviewRouter = require('./routes/reviewRoutes')
 const AppError = require('./utils/appError')
 const globalErrorHandler = require('./controllers/errorController')
+const viewRouter = require('./routes/viewRoutes')
+app.set('view engine', 'pug')
+app.set('views', path.join(__dirname, 'views'))
+//  * serving static file
+// app.use(express.static(`${__dirname}/public`))
+app.use(express.static(path.join(__dirname, 'public')))
 //  * body parser  , reading data from body into req.body
 app.use(express.json({ limit: '10kb' }))
 //  * set security HTTP headers
@@ -32,15 +39,15 @@ app.use(mongoSanitize())
 app.use(xss())
 //  * prevent parameter pollution
 app.use(hpp({
-    whitelist: ['duration','difficulty','price','maxGroupSize','ratingsAverage','ratingsQuantity']
+    whitelist: ['duration', 'difficulty', 'price', 'maxGroupSize', 'ratingsAverage', 'ratingsQuantity']
 }))
-//  * serving static file
-app.use(express.static(`${__dirname}/public`))
+
 //  * test middleware
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString()
     next()
 })
+app.use('/',viewRouter)
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/reviews', reviewRouter)
